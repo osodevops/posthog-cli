@@ -31,7 +31,7 @@ fn test_version_output() {
         .arg("--version")
         .assert()
         .success()
-        .stdout(predicate::str::contains("posthog 0.6.0"));
+        .stdout(predicate::str::contains("posthog 0.7.0"));
 }
 
 #[test]
