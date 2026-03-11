@@ -1,11 +1,12 @@
 [package]
 name = "posthog-cli"
-version = "0.3.0"
+version = "0.4.0"
 edition = "2021"
 rust-version = "1.80.0"
 description = "Agent-first CLI for the PostHog analytics API"
 license = "MIT"
 repository = "https://github.com/osodevops/posthog-cli"
+homepage = "https://github.com/osodevops/posthog-cli"
 default-run = "posthog"
 
 [lib]
@@ -16,9 +17,9 @@ path = "src/lib.rs"
 name = "posthog"
 path = "src/main.rs"
 
-[[bin]]
+[[example]]
 name = "gen-man"
-path = "src/bin/gen-man.rs"
+path = "examples/gen-man.rs"
 
 [dependencies]
 # CLI
@@ -81,6 +82,10 @@ workspace = true
 strip = true
 lto = true
 codegen-units = 1
+
+# cargo-dist uses this profile for release builds
+[profile.dist]
+inherits = "release"
 
 [workspace.lints.rust]
 unsafe_code = "forbid"

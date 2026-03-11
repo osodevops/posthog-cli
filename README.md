@@ -264,7 +264,7 @@ posthog completions powershell > posthog.ps1
 Generate man pages locally:
 
 ```bash
-cargo run --bin gen-man
+cargo run --example gen-man
 man man/posthog.1
 ```
 
