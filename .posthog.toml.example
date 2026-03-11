@@ -1,0 +1,16 @@
+# PostHog CLI project configuration
+# Copy to .posthog.toml in your project root
+
+[project]
+host = "https://us.posthog.com"
+project_id = "12345"
+default_date_range = "-30d"
+
+[aliases]
+dau = "query sql 'SELECT count(DISTINCT person_id) FROM events WHERE timestamp > now() - INTERVAL 1 DAY'"
+weekly_retention = "query retention --target-event sign_up --return-event any --period week --date-from -90d"
+
+[agent]
+max_concurrent_queries = 2
+output_format = "json"
+cache_ttl_seconds = 300

@@ -1,0 +1,4 @@
+/target
+/man
+*.posthog.toml
+!.posthog.toml.example

@@ -1,0 +1,103 @@
+[package]
+name = "posthog-cli"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.80.0"
+description = "Agent-first CLI for the PostHog analytics API"
+license = "MIT"
+repository = "https://github.com/osodevops/posthog-cli"
+default-run = "posthog"
+
+[lib]
+name = "posthog"
+path = "src/lib.rs"
+
+[[bin]]
+name = "posthog"
+path = "src/main.rs"
+
+[[bin]]
+name = "gen-man"
+path = "src/bin/gen-man.rs"
+
+[dependencies]
+# CLI
+clap = { version = "4", features = ["derive", "env", "string", "wrap_help"] }
+clap_complete = "4"
+clap_mangen = "0.2"
+
+# Async runtime
+tokio = { version = "1", features = ["full"] }
+
+# HTTP
+reqwest = { version = "0.12", features = ["json", "rustls-tls", "gzip"] }
+
+# Serialization
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+csv = "1"
+toml = "0.8"
+
+# Auth
+keyring = { version = "3", features = ["apple-native", "linux-native"] }
+dialoguer = "0.11"
+
+# Output
+tabled = "0.17"
+colored = "3"
+indicatif = "0.17"
+
+# Rate limiting
+governor = "0.8"
+
+# Caching
+sha2 = "0.10"
+hex = "0.4"
+directories = "5"
+
+# Logging
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+# Error handling
+thiserror = "2"
+
+# Utilities
+chrono = { version = "0.4", features = ["serde"] }
+url = "2"
+uuid = { version = "1", features = ["v4"] }
+
+[dev-dependencies]
+assert_cmd = "2"
+predicates = "3"
+wiremock = "0.6"
+tempfile = "3"
+insta = { version = "1", features = ["json"] }
+
+[lints]
+workspace = true
+
+[profile.release]
+strip = true
+lto = true
+codegen-units = 1
+
+[workspace.lints.rust]
+unsafe_code = "forbid"
+
+[workspace.lints.clippy]
+all = { level = "warn", priority = -1 }
+module_name_repetitions = "allow"
+redundant_closure_for_method_calls = "allow"
+
+[workspace.metadata.dist]
+cargo-dist-version = "0.30.2"
+ci = "github"
+installers = ["shell", "powershell", "homebrew"]
+targets = ["aarch64-apple-darwin", "x86_64-apple-darwin", "x86_64-unknown-linux-gnu", "x86_64-pc-windows-msvc"]
+install-path = "CARGO_HOME"
+install-updater = false
+pr-run-mode = "plan"
+auto-includes = true
+tap = "osodevops/homebrew-tap"
+publish-jobs = ["homebrew", "scoop"]
