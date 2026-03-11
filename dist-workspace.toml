@@ -17,3 +17,4 @@ pr-run-mode = "plan"
 auto-includes = true
 tap = "osodevops/homebrew-tap"
 publish-jobs = ["homebrew"]
+allow-dirty = ["ci"]
