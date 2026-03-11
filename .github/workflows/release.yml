@@ -225,6 +225,25 @@ jobs:
         run: |
           dist host --steps=upload --steps=release ${{ needs.plan.outputs.tag-flag }} --steps=announce --output-format=json > dist-manifest.json
           echo "manifest=$(jq -c "." dist-manifest.json)" >> "$GITHUB_OUTPUT"
+      - name: Create GitHub Release
+        shell: bash
+        run: |
+          TAG="${{ needs.plan.outputs.tag }}"
+          TITLE="posthog-cli ${TAG}"
+          # Collect release artifacts
+          ARTIFACTS=$(find target/distrib -type f \( -name "*.tar.xz" -o -name "*.zip" -o -name "*.sha256" -o -name "*.rb" -o -name "*.sh" -o -name "*.ps1" \) 2>/dev/null || true)
+          # Create release (update if exists)
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "Release $TAG already exists, uploading assets"
+            echo "$ARTIFACTS" | xargs -r gh release upload "$TAG" --clobber
+          else
+            echo "Creating release $TAG"
+            if [ -n "$ARTIFACTS" ]; then
+              echo "$ARTIFACTS" | xargs gh release create "$TAG" --title "$TITLE" --generate-notes
+            else
+              gh release create "$TAG" --title "$TITLE" --generate-notes
+            fi
+          fi
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
