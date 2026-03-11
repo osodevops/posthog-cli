@@ -16,4 +16,4 @@ install-updater = false
 pr-run-mode = "plan"
 auto-includes = true
 tap = "osodevops/homebrew-tap"
-publish-jobs = ["homebrew", "scoop"]
+publish-jobs = ["homebrew"]
