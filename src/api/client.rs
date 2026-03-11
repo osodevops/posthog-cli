@@ -63,11 +63,13 @@ impl PostHogClient {
 
     /// GET request to an arbitrary URL.
     pub async fn get_url<T: DeserializeOwned>(&self, url: &str) -> Result<T, AppError> {
-        let resp = self.request_with_retry(|| {
-            self.http
-                .get(url)
-                .header("Authorization", format!("Bearer {}", self.token))
-        }).await?;
+        let resp = self
+            .request_with_retry(|| {
+                self.http
+                    .get(url)
+                    .header("Authorization", format!("Bearer {}", self.token))
+            })
+            .await?;
         self.handle_json_response(resp).await
     }
 
@@ -78,12 +80,14 @@ impl PostHogClient {
         body: &B,
     ) -> Result<T, AppError> {
         let url = self.project_url(path);
-        let resp = self.request_with_retry(|| {
-            self.http
-                .post(&url)
-                .header("Authorization", format!("Bearer {}", self.token))
-                .json(body)
-        }).await?;
+        let resp = self
+            .request_with_retry(|| {
+                self.http
+                    .post(&url)
+                    .header("Authorization", format!("Bearer {}", self.token))
+                    .json(body)
+            })
+            .await?;
         self.handle_json_response(resp).await
     }
 
@@ -94,23 +98,27 @@ impl PostHogClient {
         body: &B,
     ) -> Result<T, AppError> {
         let url = self.project_url(path);
-        let resp = self.request_with_retry(|| {
-            self.http
-                .patch(&url)
-                .header("Authorization", format!("Bearer {}", self.token))
-                .json(body)
-        }).await?;
+        let resp = self
+            .request_with_retry(|| {
+                self.http
+                    .patch(&url)
+                    .header("Authorization", format!("Bearer {}", self.token))
+                    .json(body)
+            })
+            .await?;
         self.handle_json_response(resp).await
     }
 
     /// DELETE request to a project-scoped endpoint.
     pub async fn delete(&self, path: &str) -> Result<(), AppError> {
         let url = self.project_url(path);
-        let resp = self.request_with_retry(|| {
-            self.http
-                .delete(&url)
-                .header("Authorization", format!("Bearer {}", self.token))
-        }).await?;
+        let resp = self
+            .request_with_retry(|| {
+                self.http
+                    .delete(&url)
+                    .header("Authorization", format!("Bearer {}", self.token))
+            })
+            .await?;
         self.handle_status(resp).await
     }
 
@@ -121,12 +129,14 @@ impl PostHogClient {
         params: &[(&str, &str)],
     ) -> Result<T, AppError> {
         let url = self.project_url(path);
-        let resp = self.request_with_retry(|| {
-            self.http
-                .get(&url)
-                .header("Authorization", format!("Bearer {}", self.token))
-                .query(params)
-        }).await?;
+        let resp = self
+            .request_with_retry(|| {
+                self.http
+                    .get(&url)
+                    .header("Authorization", format!("Bearer {}", self.token))
+                    .query(params)
+            })
+            .await?;
         self.handle_json_response(resp).await
     }
 
@@ -137,37 +147,37 @@ impl PostHogClient {
         body: &B,
     ) -> Result<T, AppError> {
         let url = self.api_url(path);
-        let resp = self.request_with_retry(|| {
-            self.http
-                .post(&url)
-                .header("Authorization", format!("Bearer {}", self.token))
-                .json(body)
-        }).await?;
+        let resp = self
+            .request_with_retry(|| {
+                self.http
+                    .post(&url)
+                    .header("Authorization", format!("Bearer {}", self.token))
+                    .json(body)
+            })
+            .await?;
         self.handle_json_response(resp).await
     }
 
     /// POST to the /capture/ endpoint (no auth header, token in body).
     /// Used for event capture, identify, group, alias.
-    pub async fn post_capture<B: Serialize>(
-        &self,
-        path: &str,
-        body: &B,
-    ) -> Result<(), AppError> {
+    pub async fn post_capture<B: Serialize>(&self, path: &str, body: &B) -> Result<(), AppError> {
         let url = format!("{}/{}", self.base_url, path.trim_start_matches('/'));
-        let resp = self.request_with_retry(|| {
-            self.http.post(&url).json(body)
-        }).await?;
+        let resp = self
+            .request_with_retry(|| self.http.post(&url).json(body))
+            .await?;
         self.handle_status(resp).await
     }
 
     /// GET to the /api/users/@me/ endpoint.
     pub async fn get_me(&self) -> Result<serde_json::Value, AppError> {
         let url = format!("{}/api/users/@me/", self.base_url);
-        let resp = self.request_with_retry(|| {
-            self.http
-                .get(&url)
-                .header("Authorization", format!("Bearer {}", self.token))
-        }).await?;
+        let resp = self
+            .request_with_retry(|| {
+                self.http
+                    .get(&url)
+                    .header("Authorization", format!("Bearer {}", self.token))
+            })
+            .await?;
         self.handle_json_response(resp).await
     }
 
@@ -184,24 +194,22 @@ impl PostHogClient {
 
         // First page
         let url = self.project_url(path);
-        let mut page_params: Vec<(&str, String)> = params
-            .iter()
-            .map(|(k, v)| (*k, v.to_string()))
-            .collect();
+        let mut page_params: Vec<(&str, String)> =
+            params.iter().map(|(k, v)| (*k, v.to_string())).collect();
         page_params.push(("limit", page_size.to_string()));
 
-        let query_pairs: Vec<(&str, &str)> = page_params
-            .iter()
-            .map(|(k, v)| (*k, v.as_str()))
-            .collect();
+        let query_pairs: Vec<(&str, &str)> =
+            page_params.iter().map(|(k, v)| (*k, v.as_str())).collect();
 
         let first_page: serde_json::Value = {
-            let resp = self.request_with_retry(|| {
-                self.http
-                    .get(&url)
-                    .header("Authorization", format!("Bearer {}", self.token))
-                    .query(&query_pairs)
-            }).await?;
+            let resp = self
+                .request_with_retry(|| {
+                    self.http
+                        .get(&url)
+                        .header("Authorization", format!("Bearer {}", self.token))
+                        .query(&query_pairs)
+                })
+                .await?;
             self.handle_json_response(resp).await?
         };
 
@@ -326,9 +334,7 @@ impl PostHogClient {
 
         if status == StatusCode::NOT_FOUND {
             let body = resp.text().await.unwrap_or_default();
-            return Err(AppError::NotFound {
-                message: body,
-            });
+            return Err(AppError::NotFound { message: body });
         }
 
         if status.is_client_error() {

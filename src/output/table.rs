@@ -1,4 +1,4 @@
-use tabled::{Table, settings::Style};
+use tabled::{settings::Style, Table};
 
 /// Render data as a human-readable ASCII table.
 pub fn render(data: &serde_json::Value) -> String {
@@ -13,11 +13,13 @@ fn render_array(items: &[serde_json::Value]) -> String {
     // Collect all keys from the first object to use as columns
     let headers: Vec<String> = match items.first() {
         Some(serde_json::Value::Object(map)) => map.keys().cloned().collect(),
-        _ => return items
-            .iter()
-            .map(|v| v.to_string())
-            .collect::<Vec<_>>()
-            .join("\n"),
+        _ => {
+            return items
+                .iter()
+                .map(|v| v.to_string())
+                .collect::<Vec<_>>()
+                .join("\n")
+        }
     };
 
     let mut rows: Vec<Vec<String>> = Vec::with_capacity(items.len() + 1);

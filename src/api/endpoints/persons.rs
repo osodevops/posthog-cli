@@ -38,9 +38,12 @@ pub async fn get_by_distinct_id(
         .cloned()
         .unwrap_or_default();
 
-    results.into_iter().next().ok_or_else(|| AppError::NotFound {
-        message: format!("Person with distinct_id '{distinct_id}' not found"),
-    })
+    results
+        .into_iter()
+        .next()
+        .ok_or_else(|| AppError::NotFound {
+            message: format!("Person with distinct_id '{distinct_id}' not found"),
+        })
 }
 
 /// Update a person's properties.

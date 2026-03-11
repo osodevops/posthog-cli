@@ -94,27 +94,23 @@ pub async fn poll_query(
     for _ in 0..max_attempts {
         tokio::time::sleep(poll_interval).await;
 
-        let status: serde_json::Value = match client
-            .get(&format!("query/{}/status/", query_id))
-            .await
-        {
-            Ok(s) => s,
-            Err(AppError::NotFound { .. }) => {
-                // Query may not be registered yet, keep polling
-                continue;
-            }
-            Err(e) => {
-                if let Some(ref pb) = spinner {
-                    pb.finish_and_clear();
+        let status: serde_json::Value =
+            match client.get(&format!("query/{}/status/", query_id)).await {
+                Ok(s) => s,
+                Err(AppError::NotFound { .. }) => {
+                    // Query may not be registered yet, keep polling
+                    continue;
                 }
-                return Err(e);
-            }
-        };
+                Err(e) => {
+                    if let Some(ref pb) = spinner {
+                        pb.finish_and_clear();
+                    }
+                    return Err(e);
+                }
+            };
 
         // Check if complete
-        let query_status = status
-            .get("query_status")
-            .unwrap_or(&status);
+        let query_status = status.get("query_status").unwrap_or(&status);
 
         let is_running = query_status
             .get("complete")

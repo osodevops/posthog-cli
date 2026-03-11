@@ -57,7 +57,9 @@ impl ResolvedAuth {
         }
 
         Err(AppError::Auth {
-            message: "No API token found. Set POSTHOG_TOKEN, use --token, or run 'posthog auth login'".into(),
+            message:
+                "No API token found. Set POSTHOG_TOKEN, use --token, or run 'posthog auth login'"
+                    .into(),
         })
     }
 
@@ -114,9 +116,7 @@ impl ResolvedAuth {
     pub fn store_token(token: &str) -> Result<(), AppError> {
         let entry = keyring::Entry::new(KEYRING_SERVICE, KEYRING_USER_TOKEN).map_err(|e| {
             AppError::Config {
-                message: format!(
-                    "Keyring unavailable: {e}. Use POSTHOG_TOKEN env var instead."
-                ),
+                message: format!("Keyring unavailable: {e}. Use POSTHOG_TOKEN env var instead."),
             }
         })?;
         entry.set_password(token).map_err(|e| AppError::Config {
@@ -128,15 +128,14 @@ impl ResolvedAuth {
     }
 
     pub fn delete_token() -> Result<(), AppError> {
-        let entry = keyring::Entry::new(KEYRING_SERVICE, KEYRING_USER_TOKEN)
-            .map_err(|e| AppError::Config {
+        let entry = keyring::Entry::new(KEYRING_SERVICE, KEYRING_USER_TOKEN).map_err(|e| {
+            AppError::Config {
                 message: format!("Keyring unavailable: {e}"),
-            })?;
-        entry
-            .delete_credential()
-            .map_err(|e| AppError::Config {
-                message: format!("Failed to delete token from keyring: {e}"),
-            })?;
+            }
+        })?;
+        entry.delete_credential().map_err(|e| AppError::Config {
+            message: format!("Failed to delete token from keyring: {e}"),
+        })?;
         Ok(())
     }
 }

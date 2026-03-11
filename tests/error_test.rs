@@ -16,7 +16,13 @@ fn test_exit_codes() {
         .exit_code(),
         2
     );
-    assert_eq!(AppError::RateLimited { retry_after_secs: 5 }.exit_code(), 3);
+    assert_eq!(
+        AppError::RateLimited {
+            retry_after_secs: 5
+        }
+        .exit_code(),
+        3
+    );
     assert_eq!(
         AppError::NotFound {
             message: "test".into()
@@ -52,7 +58,10 @@ fn test_error_codes() {
         "auth_failed"
     );
     assert_eq!(
-        AppError::RateLimited { retry_after_secs: 5 }.error_code(),
+        AppError::RateLimited {
+            retry_after_secs: 5
+        }
+        .error_code(),
         "rate_limited"
     );
     assert_eq!(

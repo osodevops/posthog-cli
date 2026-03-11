@@ -65,9 +65,7 @@ pub async fn update(
         body["name"] = json!(n);
     }
 
-    client
-        .patch(&format!("experiments/{}/", id), &body)
-        .await
+    client.patch(&format!("experiments/{}/", id), &body).await
 }
 
 /// Start an experiment by setting the start_date to the current UTC time.
@@ -76,9 +74,7 @@ pub async fn start(client: &PostHogClient, id: u64) -> Result<serde_json::Value,
         "start_date": chrono::Utc::now().to_rfc3339(),
     });
 
-    client
-        .patch(&format!("experiments/{}/", id), &body)
-        .await
+    client.patch(&format!("experiments/{}/", id), &body).await
 }
 
 /// Stop an experiment by setting the end_date to the current UTC time.
@@ -87,9 +83,7 @@ pub async fn stop(client: &PostHogClient, id: u64) -> Result<serde_json::Value, 
         "end_date": chrono::Utc::now().to_rfc3339(),
     });
 
-    client
-        .patch(&format!("experiments/{}/", id), &body)
-        .await
+    client.patch(&format!("experiments/{}/", id), &body).await
 }
 
 /// Get experiment results.

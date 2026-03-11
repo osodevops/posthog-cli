@@ -33,10 +33,7 @@ pub async fn event(
 }
 
 /// Batch capture events from a JSONL file.
-pub async fn batch(
-    client: &PostHogClient,
-    file_path: &str,
-) -> Result<serde_json::Value, AppError> {
+pub async fn batch(client: &PostHogClient, file_path: &str) -> Result<serde_json::Value, AppError> {
     let contents = std::fs::read_to_string(file_path).map_err(|e| AppError::Validation {
         message: format!("Failed to read file {file_path}: {e}"),
     })?;

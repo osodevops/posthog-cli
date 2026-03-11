@@ -11,7 +11,9 @@ fn test_help_output() {
         .arg("--help")
         .assert()
         .success()
-        .stdout(predicate::str::contains("Agent-first CLI for the PostHog analytics API"))
+        .stdout(predicate::str::contains(
+            "Agent-first CLI for the PostHog analytics API",
+        ))
         .stdout(predicate::str::contains("auth"))
         .stdout(predicate::str::contains("query"))
         .stdout(predicate::str::contains("flags"))

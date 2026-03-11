@@ -31,10 +31,9 @@ impl ProjectConfig {
             message: format!("Failed to read {}: {e}", path.display()),
         })?;
 
-        let config: ProjectConfig =
-            toml::from_str(&contents).map_err(|e| AppError::Config {
-                message: format!("Failed to parse {}: {e}", path.display()),
-            })?;
+        let config: ProjectConfig = toml::from_str(&contents).map_err(|e| AppError::Config {
+            message: format!("Failed to parse {}: {e}", path.display()),
+        })?;
 
         // Flatten project section fields for easier access
         Ok(Self {

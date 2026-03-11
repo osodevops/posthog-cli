@@ -20,10 +20,7 @@ pub async fn list_events(
 }
 
 /// Get a single event definition by ID.
-pub async fn get_event(
-    client: &PostHogClient,
-    id: &str,
-) -> Result<serde_json::Value, AppError> {
+pub async fn get_event(client: &PostHogClient, id: &str) -> Result<serde_json::Value, AppError> {
     client.get(&format!("event_definitions/{}/", id)).await
 }
 
@@ -89,10 +86,7 @@ pub async fn list_properties(
 }
 
 /// Get a single property definition by ID.
-pub async fn get_property(
-    client: &PostHogClient,
-    id: &str,
-) -> Result<serde_json::Value, AppError> {
+pub async fn get_property(client: &PostHogClient, id: &str) -> Result<serde_json::Value, AppError> {
     client.get(&format!("property_definitions/{}/", id)).await
 }
 

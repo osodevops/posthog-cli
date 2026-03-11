@@ -108,9 +108,7 @@ pub async fn update(
         body["name"] = json!(n);
     }
 
-    client
-        .patch(&format!("feature_flags/{}/", id), &body)
-        .await
+    client.patch(&format!("feature_flags/{}/", id), &body).await
 }
 
 /// Delete a feature flag.

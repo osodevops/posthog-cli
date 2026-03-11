@@ -316,17 +316,37 @@ async fn execute_command(
 
     let data = match &cli.command {
         Commands::Query { command } => execute_query(client, command, cli.quiet).await?,
-        Commands::Flags { command } => execute_flags(client, command, cli.all_pages, cli.page_size).await?,
-        Commands::Insights { command } => execute_insights(client, command, cli.all_pages, cli.page_size).await?,
-        Commands::Dashboards { command } => execute_dashboards(client, command, cli.all_pages, cli.page_size).await?,
-        Commands::Annotations { command } => execute_annotations(client, command, cli.all_pages, cli.page_size).await?,
+        Commands::Flags { command } => {
+            execute_flags(client, command, cli.all_pages, cli.page_size).await?
+        }
+        Commands::Insights { command } => {
+            execute_insights(client, command, cli.all_pages, cli.page_size).await?
+        }
+        Commands::Dashboards { command } => {
+            execute_dashboards(client, command, cli.all_pages, cli.page_size).await?
+        }
+        Commands::Annotations { command } => {
+            execute_annotations(client, command, cli.all_pages, cli.page_size).await?
+        }
         Commands::Capture { command } => execute_capture(client, command).await?,
-        Commands::Experiments { command } => execute_experiments(client, command, cli.all_pages, cli.page_size).await?,
-        Commands::Surveys { command } => execute_surveys(client, command, cli.all_pages, cli.page_size).await?,
-        Commands::Persons { command } => execute_persons(client, command, cli.all_pages, cli.page_size).await?,
-        Commands::Cohorts { command } => execute_cohorts(client, command, cli.all_pages, cli.page_size).await?,
-        Commands::Errors { command } => execute_errors(client, command, cli.all_pages, cli.page_size).await?,
-        Commands::Actions { command } => execute_actions(client, command, cli.all_pages, cli.page_size).await?,
+        Commands::Experiments { command } => {
+            execute_experiments(client, command, cli.all_pages, cli.page_size).await?
+        }
+        Commands::Surveys { command } => {
+            execute_surveys(client, command, cli.all_pages, cli.page_size).await?
+        }
+        Commands::Persons { command } => {
+            execute_persons(client, command, cli.all_pages, cli.page_size).await?
+        }
+        Commands::Cohorts { command } => {
+            execute_cohorts(client, command, cli.all_pages, cli.page_size).await?
+        }
+        Commands::Errors { command } => {
+            execute_errors(client, command, cli.all_pages, cli.page_size).await?
+        }
+        Commands::Actions { command } => {
+            execute_actions(client, command, cli.all_pages, cli.page_size).await?
+        }
         Commands::Definitions { command } => execute_definitions(client, command).await?,
         Commands::Auth { .. } | Commands::Completions { .. } | Commands::Cache { .. } => {
             unreachable!()
@@ -346,17 +366,34 @@ async fn execute_command(
 fn is_cacheable_command(cmd: &Commands) -> bool {
     matches!(
         cmd,
-        Commands::Query { command: QueryCommand::Sql { .. } | QueryCommand::Trends { .. } | QueryCommand::Funnels { .. } | QueryCommand::Retention { .. } }
-        | Commands::Flags { command: FlagCommand::List { .. } | FlagCommand::Get { .. } }
-        | Commands::Insights { command: InsightCommand::List { .. } | InsightCommand::Get { .. } }
-        | Commands::Dashboards { command: DashboardCommand::List { .. } | DashboardCommand::Get { .. } }
-        | Commands::Annotations { command: AnnotationCommand::List { .. } | AnnotationCommand::Get { .. } }
-        | Commands::Experiments { command: ExperimentCommand::List { .. } | ExperimentCommand::Get { .. } | ExperimentCommand::Results { .. } }
-        | Commands::Surveys { command: SurveyCommand::List { .. } | SurveyCommand::Get { .. } }
-        | Commands::Persons { command: PersonCommand::List { .. } | PersonCommand::Get { .. } }
-        | Commands::Cohorts { command: CohortCommand::List | CohortCommand::Get { .. } }
-        | Commands::Errors { command: ErrorCommand::List { .. } | ErrorCommand::Get { .. } }
-        | Commands::Actions { command: ActionCommand::List | ActionCommand::Get { .. } }
+        Commands::Query {
+            command: QueryCommand::Sql { .. }
+                | QueryCommand::Trends { .. }
+                | QueryCommand::Funnels { .. }
+                | QueryCommand::Retention { .. }
+        } | Commands::Flags {
+            command: FlagCommand::List { .. } | FlagCommand::Get { .. }
+        } | Commands::Insights {
+            command: InsightCommand::List { .. } | InsightCommand::Get { .. }
+        } | Commands::Dashboards {
+            command: DashboardCommand::List { .. } | DashboardCommand::Get { .. }
+        } | Commands::Annotations {
+            command: AnnotationCommand::List { .. } | AnnotationCommand::Get { .. }
+        } | Commands::Experiments {
+            command: ExperimentCommand::List { .. }
+                | ExperimentCommand::Get { .. }
+                | ExperimentCommand::Results { .. }
+        } | Commands::Surveys {
+            command: SurveyCommand::List { .. } | SurveyCommand::Get { .. }
+        } | Commands::Persons {
+            command: PersonCommand::List { .. } | PersonCommand::Get { .. }
+        } | Commands::Cohorts {
+            command: CohortCommand::List | CohortCommand::Get { .. }
+        } | Commands::Errors {
+            command: ErrorCommand::List { .. } | ErrorCommand::Get { .. }
+        } | Commands::Actions {
+            command: ActionCommand::List | ActionCommand::Get { .. }
+        }
     )
 }
 
@@ -455,13 +492,8 @@ async fn execute_query(
             date_from,
             date_to,
         } => {
-            api::endpoints::query::funnels(
-                client,
-                steps,
-                date_from.as_deref(),
-                date_to.as_deref(),
-            )
-            .await
+            api::endpoints::query::funnels(client, steps, date_from.as_deref(), date_to.as_deref())
+                .await
         }
 
         QueryCommand::Retention {
@@ -513,7 +545,9 @@ async fn execute_flags(
                 params.push(("search", s));
             }
             if all_pages {
-                client.get_all_pages("feature_flags/", &params, page_size).await
+                client
+                    .get_all_pages("feature_flags/", &params, page_size)
+                    .await
             } else {
                 api::endpoints::flags::list(client, *active, search.as_deref()).await
             }
@@ -524,17 +558,13 @@ async fn execute_flags(
             name,
             rollout,
             active,
-        } => {
-            api::endpoints::flags::create(client, key, name.as_deref(), *rollout, *active).await
-        }
+        } => api::endpoints::flags::create(client, key, name.as_deref(), *rollout, *active).await,
         FlagCommand::Update {
             key,
             rollout,
             active,
             name,
-        } => {
-            api::endpoints::flags::update(client, key, *rollout, *active, name.as_deref()).await
-        }
+        } => api::endpoints::flags::update(client, key, *rollout, *active, name.as_deref()).await,
         FlagCommand::Delete { key } => {
             api::endpoints::flags::delete(client, key).await?;
             Ok(json!({"status": "deleted", "key": key}))
@@ -614,7 +644,9 @@ async fn execute_dashboards(
                     pinned_str = "true".to_string();
                     params.push(("pinned", &pinned_str));
                 }
-                client.get_all_pages("dashboards/", &params, page_size).await
+                client
+                    .get_all_pages("dashboards/", &params, page_size)
+                    .await
             } else {
                 api::endpoints::dashboards::list(client, search.as_deref(), *pinned).await
             }
@@ -650,7 +682,9 @@ async fn execute_annotations(
                 if let Some(s) = search {
                     params.push(("search", s));
                 }
-                client.get_all_pages("annotations/", &params, page_size).await
+                client
+                    .get_all_pages("annotations/", &params, page_size)
+                    .await
             } else {
                 api::endpoints::annotations::list(client, search.as_deref()).await
             }
@@ -692,10 +726,9 @@ async fn execute_capture(
             group_key,
             set,
         } => api::endpoints::capture::group(client, group_type, group_key, set).await,
-        CaptureCommand::Alias {
-            distinct_id,
-            alias,
-        } => api::endpoints::capture::alias(client, distinct_id, alias).await,
+        CaptureCommand::Alias { distinct_id, alias } => {
+            api::endpoints::capture::alias(client, distinct_id, alias).await
+        }
     }
 }
 
@@ -712,7 +745,9 @@ async fn execute_experiments(
                 if let Some(s) = status {
                     params.push(("status", s));
                 }
-                client.get_all_pages("experiments/", &params, page_size).await
+                client
+                    .get_all_pages("experiments/", &params, page_size)
+                    .await
             } else {
                 api::endpoints::experiments::list(client, status.as_deref()).await
             }
@@ -781,21 +816,9 @@ async fn execute_surveys(
             name,
             questions,
             targeting,
-        } => {
-            api::endpoints::surveys::create(client, name, questions, targeting.as_deref()).await
-        }
-        SurveyCommand::Update {
-            id,
-            name,
-            end_date,
-        } => {
-            api::endpoints::surveys::update(
-                client,
-                *id,
-                end_date.as_deref(),
-                name.as_deref(),
-            )
-            .await
+        } => api::endpoints::surveys::create(client, name, questions, targeting.as_deref()).await,
+        SurveyCommand::Update { id, name, end_date } => {
+            api::endpoints::surveys::update(client, *id, end_date.as_deref(), name.as_deref()).await
         }
         SurveyCommand::Launch { id } => api::endpoints::surveys::launch(client, *id).await,
         SurveyCommand::Stop { id } => api::endpoints::surveys::stop(client, *id).await,
@@ -814,10 +837,7 @@ async fn execute_persons(
     page_size: u32,
 ) -> Result<serde_json::Value, AppError> {
     match command {
-        PersonCommand::List {
-            search,
-            properties,
-        } => {
+        PersonCommand::List { search, properties } => {
             if all_pages {
                 let mut params: Vec<(&str, &str)> = Vec::new();
                 if let Some(s) = search {
@@ -867,9 +887,7 @@ async fn execute_cohorts(
     match command {
         CohortCommand::List => {
             if all_pages {
-                client
-                    .get_all_pages("cohorts/", &[], page_size)
-                    .await
+                client.get_all_pages("cohorts/", &[], page_size).await
             } else {
                 api::endpoints::cohorts::list(client).await
             }
