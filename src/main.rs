@@ -215,10 +215,7 @@ async fn handle_auth(
                 if let Some(ref pid) = default_project_id {
                     println!("Default project: {pid}");
                 }
-                println!(
-                    "Credentials saved to {}",
-                    config_path.display()
-                );
+                println!("Credentials saved to {}", config_path.display());
             }
         }
 
