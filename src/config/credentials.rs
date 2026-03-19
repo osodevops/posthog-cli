@@ -1,8 +1,5 @@
 use crate::error::AppError;
 
-const KEYRING_SERVICE: &str = "posthog-cli";
-const KEYRING_USER_TOKEN: &str = "api_token";
-
 #[derive(Debug)]
 pub struct ResolvedAuth {
     pub token: String,
@@ -12,7 +9,7 @@ pub struct ResolvedAuth {
 }
 
 impl ResolvedAuth {
-    /// Resolve credentials from: CLI flag > env var > keyring > config file.
+    /// Resolve credentials from: CLI flag > env var > config file.
     pub fn resolve(
         cli_token: Option<&str>,
         cli_host: Option<&str>,
@@ -20,7 +17,7 @@ impl ResolvedAuth {
     ) -> Result<Self, AppError> {
         let config = super::AppConfig::load()?;
 
-        let (token, token_source) = Self::resolve_token(cli_token)?;
+        let (token, token_source) = Self::resolve_token(cli_token, &config)?;
         let host = Self::resolve_host(cli_host, &config);
         let project_id = Self::resolve_project(cli_project, &config)?;
 
@@ -32,7 +29,31 @@ impl ResolvedAuth {
         })
     }
 
-    fn resolve_token(cli_token: Option<&str>) -> Result<(String, String), AppError> {
+    /// Resolve token and host only (project_id optional). Used by `auth status`.
+    pub fn resolve_for_status(
+        cli_token: Option<&str>,
+        cli_host: Option<&str>,
+        cli_project: Option<&str>,
+    ) -> Result<Self, AppError> {
+        let config = super::AppConfig::load()?;
+
+        let (token, token_source) = Self::resolve_token(cli_token, &config)?;
+        let host = Self::resolve_host(cli_host, &config);
+        let project_id = Self::resolve_project(cli_project, &config)
+            .unwrap_or_else(|_| "not configured".to_string());
+
+        Ok(ResolvedAuth {
+            token,
+            host,
+            project_id,
+            token_source,
+        })
+    }
+
+    fn resolve_token(
+        cli_token: Option<&str>,
+        config: &super::AppConfig,
+    ) -> Result<(String, String), AppError> {
         // 1. CLI flag
         if let Some(token) = cli_token {
             if !token.is_empty() {
@@ -47,12 +68,10 @@ impl ResolvedAuth {
             }
         }
 
-        // 3. OS keyring
-        if let Ok(entry) = keyring::Entry::new(KEYRING_SERVICE, KEYRING_USER_TOKEN) {
-            if let Ok(token) = entry.get_password() {
-                if !token.is_empty() {
-                    return Ok((token, "keyring".into()));
-                }
+        // 3. Config file
+        if let Some(ref token) = config.api_token {
+            if !token.is_empty() {
+                return Ok((token.clone(), "config file".into()));
             }
         }
 
@@ -114,28 +133,14 @@ impl ResolvedAuth {
     }
 
     pub fn store_token(token: &str) -> Result<(), AppError> {
-        let entry = keyring::Entry::new(KEYRING_SERVICE, KEYRING_USER_TOKEN).map_err(|e| {
-            AppError::Config {
-                message: format!("Keyring unavailable: {e}. Use POSTHOG_TOKEN env var instead."),
-            }
-        })?;
-        entry.set_password(token).map_err(|e| AppError::Config {
-            message: format!(
-                "Failed to store token in keyring: {e}. Use POSTHOG_TOKEN env var instead."
-            ),
-        })?;
-        Ok(())
+        let mut config = super::AppConfig::load()?;
+        config.api_token = Some(token.to_string());
+        config.save()
     }
 
     pub fn delete_token() -> Result<(), AppError> {
-        let entry = keyring::Entry::new(KEYRING_SERVICE, KEYRING_USER_TOKEN).map_err(|e| {
-            AppError::Config {
-                message: format!("Keyring unavailable: {e}"),
-            }
-        })?;
-        entry.delete_credential().map_err(|e| AppError::Config {
-            message: format!("Failed to delete token from keyring: {e}"),
-        })?;
-        Ok(())
+        let mut config = super::AppConfig::load()?;
+        config.api_token = None;
+        config.save()
     }
 }

@@ -41,7 +41,6 @@ csv = "1"
 toml = "0.8"
 
 # Auth
-keyring = { version = "3", features = ["apple-native", "linux-native"] }
 dialoguer = "0.11"
 
 # Output

@@ -154,22 +154,33 @@ async fn handle_auth(
 
             let temp_client =
                 PostHogClient::new(host.clone(), api_token.clone(), "0".into(), 30, 1)?;
-            let me = temp_client.get_me().await.map_err(|_| AppError::Auth {
-                message: "Invalid API token".into(),
+            let me = temp_client.get_me().await.map_err(|e| AppError::Auth {
+                message: format!(
+                    "Authentication failed against {host}: {e}\n\n\
+                    Hint: If your PostHog account is on a different region, specify the correct host:\n  \
+                    posthog auth login --host https://eu.posthog.com   (EU region)\n  \
+                    posthog auth login --host https://us.posthog.com   (US region)\n  \
+                    posthog auth login --host https://your-instance.com (self-hosted)"
+                ),
             })?;
 
-            if let Err(e) = ResolvedAuth::store_token(&api_token) {
-                if !is_json {
-                    eprintln!(
-                        "{} Could not store token in keyring: {e}",
-                        "warning:".yellow().bold()
-                    );
-                    eprintln!("Use POSTHOG_TOKEN env var instead.");
+            let mut config = AppConfig::load()?;
+            config.api_token = Some(api_token);
+            config.host = Some(host);
+
+            // Extract default project from the user's current team
+            let default_project_id = me
+                .get("team")
+                .and_then(|t| t.get("id"))
+                .and_then(|id| id.as_u64())
+                .map(|id| id.to_string());
+
+            if config.project_id.is_none() {
+                if let Some(ref pid) = default_project_id {
+                    config.project_id = Some(pid.clone());
                 }
             }
 
-            let mut config = AppConfig::load()?;
-            config.host = Some(host);
             config.save()?;
 
             let name = me
@@ -181,12 +192,18 @@ async fn handle_auth(
                 .and_then(|v| v.as_str())
                 .unwrap_or("unknown");
 
+            let config_path = AppConfig::config_path();
+
             if is_json {
-                let out = json!({
+                let mut out = json!({
                     "status": "authenticated",
                     "user": name,
                     "email": email,
+                    "config_path": config_path.display().to_string(),
                 });
+                if let Some(ref pid) = default_project_id {
+                    out["project_id"] = json!(pid);
+                }
                 println!("{}", serde_json::to_string_pretty(&out).unwrap());
             } else {
                 println!(
@@ -194,6 +211,13 @@ async fn handle_auth(
                     "Success!".green().bold(),
                     name,
                     email
+                );
+                if let Some(ref pid) = default_project_id {
+                    println!("Default project: {pid}");
+                }
+                println!(
+                    "Credentials saved to {}",
+                    config_path.display()
                 );
             }
         }
@@ -204,12 +228,12 @@ async fn handle_auth(
             if is_json {
                 println!(r#"{{"status": "logged_out"}}"#);
             } else {
-                println!("Credentials removed from keyring.");
+                println!("Credentials removed.");
             }
         }
 
         AuthCommand::Status => {
-            match ResolvedAuth::resolve(
+            match ResolvedAuth::resolve_for_status(
                 cli.token.as_deref(),
                 cli.host.as_deref(),
                 cli.project.as_deref(),

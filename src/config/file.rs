@@ -5,6 +5,7 @@ use crate::error::AppError;
 
 #[derive(Debug, Default, Serialize, Deserialize)]
 pub struct AppConfig {
+    pub api_token: Option<String>,
     pub host: Option<String>,
     pub project_id: Option<String>,
     pub default_format: Option<String>,
@@ -62,9 +63,20 @@ impl AppConfig {
         let toml_str = toml::to_string_pretty(self).map_err(|e| AppError::Config {
             message: format!("Failed to serialize config: {e}"),
         })?;
-        std::fs::write(&path, toml_str).map_err(|e| AppError::Config {
+        std::fs::write(&path, &toml_str).map_err(|e| AppError::Config {
             message: format!("Failed to write config to {}: {e}", path.display()),
         })?;
+
+        // Set file permissions to 600 (owner read/write only) since it contains the API token
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            let perms = std::fs::Permissions::from_mode(0o600);
+            std::fs::set_permissions(&path, perms).map_err(|e| AppError::Config {
+                message: format!("Failed to set config file permissions: {e}"),
+            })?;
+        }
+
         Ok(())
     }
 
